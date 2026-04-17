@@ -2,47 +2,75 @@
 
 @section('content')
 
-<h2>Book Details</h2>
+<h2 class="text-2xl font-semibold mb-6">Book Details</h2>
 
-<p><strong>Title:</strong> {{ $book->title }}</p>
-<p><strong>Author:</strong> {{ $book->author }}</p>
-<p><strong>Genre:</strong> {{ $book->genre }}</p>
-<p><strong>Published Year:</strong> {{ $book->published_year }}</p>
-<p><strong>Quantity:</strong> {{ $book->quantity }}</p>
+<!-- Book Info Card -->
+<div class="bg-gray-50 p-4 rounded-lg shadow-sm mb-6">
+    <p><strong>Title:</strong> {{ $book->title }}</p>
+    <p><strong>Author:</strong> {{ $book->author }}</p>
+    <p><strong>Genre:</strong> {{ $book->genre }}</p>
+    <p><strong>Published Year:</strong> {{ $book->published_year }}</p>
+    <p><strong>Available Quantity:</strong> {{ $book->quantity }}</p>
+</div>
 
-<hr>
+<hr class="mb-6">
 
-<h3>Borrow History</h3>
+<h3 class="text-xl font-semibold mb-4">Borrow History</h3>
 
-<table border="1" cellpadding="10">
-    <tr>
-        <th>Borrower</th>
-        <th>Borrowed At</th>
-        <th>Returned At</th>
-        <th>Status</th>
-    </tr>
+<div class="overflow-x-auto">
+    <table class="w-full border border-gray-200 rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="p-3 text-left">Borrower</th>
+                <th class="p-3 text-left">Borrowed At</th>
+                <th class="p-3 text-left">Returned At</th>
+                <th class="p-3 text-left">Status</th>
+            </tr>
+        </thead>
 
-    @forelse($book->borrowRecords as $record)
-        <tr>
-            <td>{{ $record->borrower_name }}</td>
-            <td>{{ $record->borrowed_at }}</td>
-            <td>{{ $record->returned_at ?? 'Not Returned' }}</td>
-            <td>
-                @if($record->returned_at)
-                    Returned
-                @else
-                    Borrowed
-                @endif
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="4">No borrow history</td>
-        </tr>
-    @endforelse
-</table>
+        <tbody>
+            @forelse($book->borrowRecords as $record)
+                <tr class="border-t hover:bg-gray-50">
+                    <td class="p-3 font-medium">{{ $record->borrower_name }}</td>
 
-<br>
-<a href="{{ route('books.index') }}">Back</a>
+                    <td class="p-3">
+                        {{ \Carbon\Carbon::parse($record->borrowed_at)->format('d M Y, H:i') }}
+                    </td>
+
+                    <td class="p-3">
+                        {{ $record->returned_at 
+                            ? \Carbon\Carbon::parse($record->returned_at)->format('d M Y, H:i') 
+                            : '—' }}
+                    </td>
+
+                    <td class="p-3">
+                        @if($record->returned_at)
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">
+                                Returned
+                            </span>
+                        @else
+                            <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-sm">
+                                Borrowed
+                            </span>
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="text-center p-4 text-gray-500">
+                        No borrow history
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-6">
+    <a href="{{ route('books.index') }}"
+       class="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400">
+        ← Back to List
+    </a>
+</div>
 
 @endsection
