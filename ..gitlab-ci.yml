@@ -1,28 +1,43 @@
 stages:
   - test
 
+image: php:8.4
+
+services:
+  - name: postgres:15
+    alias: postgres
+
 variables:
   APP_ENV: testing
+  APP_DEBUG: "true"
+
   DB_CONNECTION: pgsql
-  DB_DATABASE: database/database.pgsql
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_DATABASE: library_system
+  DB_USERNAME: postgres
+  DB_PASSWORD: postgres
+
+  POSTGRES_DB: laravel_test
+  POSTGRES_USER: laravel
+  POSTGRES_PASSWORD: secret
+
   CACHE_DRIVER: array
   SESSION_DRIVER: array
   QUEUE_CONNECTION: sync
 
 test_laravel:
   stage: test
-  image: php:8.2
 
   before_script:
-    - apt-get update && apt-get install -y git unzip libzip-dev zip libsqlite3-dev
-    - docker-php-ext-install pdo pdo_sqlite zip
+    - apt-get update && apt-get install -y git unzip curl libzip-dev libpq-dev postgresql-client
+    - docker-php-ext-install pdo_pgsql zip
     - curl -sS https://getcomposer.org/installer | php
     - mv composer.phar /usr/local/bin/composer
     - cp .env.example .env
-    - mkdir -p database
-    - touch database/database.sqlite
     - composer install --no-interaction --prefer-dist --optimize-autoloader
     - php artisan key:generate
+    - until pg_isready -h postgres -p 5432 -U laravel; do echo "Waiting for PostgreSQL..."; sleep 2; done
 
   script:
     - php artisan migrate --force
