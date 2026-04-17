@@ -1,0 +1,32 @@
+stages:
+  - test
+
+variables:
+  APP_ENV: testing
+  DB_CONNECTION: pgsql
+  DB_DATABASE: database/database.pgsql
+  CACHE_DRIVER: array
+  SESSION_DRIVER: array
+  QUEUE_CONNECTION: sync
+
+test_laravel:
+  stage: test
+  image: php:8.2
+
+  before_script:
+    - apt-get update && apt-get install -y git unzip libzip-dev zip libsqlite3-dev
+    - docker-php-ext-install pdo pdo_sqlite zip
+    - curl -sS https://getcomposer.org/installer | php
+    - mv composer.phar /usr/local/bin/composer
+    - cp .env.example .env
+    - mkdir -p database
+    - touch database/database.sqlite
+    - composer install --no-interaction --prefer-dist --optimize-autoloader
+    - php artisan key:generate
+
+  script:
+    - php artisan migrate --force
+    - php artisan test
+
+  only:
+    - main
